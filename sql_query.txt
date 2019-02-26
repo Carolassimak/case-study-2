@@ -1,0 +1,36 @@
+select
+Orders.id,
+Orders.user_id,
+Customers.age as customer_age,
+count(OrderItems.sku) as qty_item_per_order,
+Orders.order_date,
+Orders.device_type,
+Orders.order_retail_type,
+Orders.order_status,
+Orders.payment_method,
+Orders.payment_num_installments,
+Orders.payment_coupon,
+Orders.address_city,
+Orders.address_region,
+Orders.address_state,
+Orders.address_zip,
+Orders.is_mobile,
+Orders.is_placed_order,
+Orders.is_shipped_order,
+Orders.is_purchase_of_new_buyer,
+Orders.is_shipped_purchase_of_new_buyer,
+orders.order_total as gmv,
+(case Orders.is_shipped_order  when 't' then orders.order_total else 0 end) as gross_revenue
+
+from Orders
+left join Customers on Orders.user_id =Customers.user_id
+left join OrderItems on orders.id = OrderItems.order_id
+
+where 1=1 
+and Orders.is_placed_order='t'
+and ORDERS.payment_method is not 'N/A'
+and Orders.id not in (select Orders.id from Orders where Orders.is_shipped_order ='f' and Orders.order_status = 'CANCELLED' and Orders.payment_method is not 'Boleto')
+and Orders.id not in (select Orders.id from Orders where Orders.is_shipped_order ='f' and Orders.order_status = 'AWAITING PAYMENT CONFIRMATION')
+
+group by
+1
